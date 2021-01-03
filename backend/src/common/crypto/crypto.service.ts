@@ -23,7 +23,7 @@ export class CryptoService {
   verify(token: string): boolean {
     const { secret } = this.config.get('auth.REFRESH_TOKEN');
     try {
-      const { exp } = jwt.verify(token, secret);
+      const { exp } = jwt.verify(token, secret) as any
       if (exp < Date.now() / 1000) return false;
       return true;
     } catch (e) {
