@@ -1,0 +1,14 @@
+app:
+  port: 8080
+
+mongo:
+  uri: mongodb://localhost:27017
+  db: camp
+
+auth:
+  ACCESS_TOKEN:
+    secret: access token secret
+    expiration: 1d
+  REFRESH_TOKEN:
+    secret: refresh token
+    expiration: 30d

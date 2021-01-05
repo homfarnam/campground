@@ -4,7 +4,7 @@ import { Model } from 'mongoose';
 import { User, UserDocument } from './user.schema';
 import { RegisterDto } from './dto';
 import { DbUser, UserData } from './interfaces';
-import { CryptoService } from '../crypto/crypto.service';
+import { CryptoService } from '../crypto';
 
 // A service used to create/find/update a user document in MongoDb
 @Injectable()
@@ -17,8 +17,8 @@ export class UsersService {
 
   async createUser(registerDto: RegisterDto): Promise<UserData> {
     const { email, password, nickname = null } = registerDto;
-    const hashedPwd = this.cryptoService.hash(password);
 
+    const hashedPwd = this.cryptoService.hash(password);
     const userData: any = {
       email,
       password: hashedPwd,
@@ -28,7 +28,7 @@ export class UsersService {
 
     return new Promise((resolve, reject) => {
       this.userModel.create(userData, (err: unknown, user: UserDocument) => {
-        if (err) reject(user);
+        if (err) reject(err);
         else resolve(this.cleanUser(user.toJSON() as DbUser));
       });
     });
@@ -42,7 +42,6 @@ export class UsersService {
       user = await this.userModel
         .findOne({ email })
         .then((doc) => (doc ? doc.toJSON() : null));
-      await this.updateUser(user._id, { token: user.token });
       if (user && this.cryptoService.compare(password, user.password)) {
         return this.cleanUser(user);
       } else return null;
@@ -57,13 +56,13 @@ export class UsersService {
     if (userId) {
       return this.userModel
         .findById(userId)
-        .then((doc) => (doc ? (doc.toJSON() as any) : null))
+        .then((doc) => (doc ? (doc.toJSON() as DbUser) : null))
         .then((user) => this.cleanUser(user));
     }
     return this.cleanUser(user);
   }
 
-  updateUser(userId: string, update: any) {
+  updateUser(userId: string, update: object) {
     return this.userModel.updateOne({ _id: userId }, update);
   }
 

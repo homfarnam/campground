@@ -6,7 +6,9 @@ export const User = createParamDecorator(
     if (field) {
       try {
         return request.user[field];
-      } catch {}
+      } catch {
+        return;
+      }
     }
     return request.user;
   },

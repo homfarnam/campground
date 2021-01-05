@@ -26,19 +26,14 @@ export class AuthService {
   }
 
   async loginUser(loginDto: LoginDto) {
-    return this.userService
-      .findUser(loginDto)
-      .then(async (user) => {
-        if (user) {
-          const token = this.cryptoService.generateRefreshToken();
-          await this.userService.updateUser(user.id, { token });
-          user.token = token;
-        }
+    return this.userService.findUser(loginDto).then(async (user) => {
+      if (user) {
+        const token = this.cryptoService.generateRefreshToken();
+        await this.userService.updateUser(user.id, { token });
+        user.token = token;
         return this.signUser(user);
-      })
-      .catch((e) => {
-        throw new UnauthorizedException();
-      });
+      } else throw new UnauthorizedException();
+    });
   }
 
   async logoutUser(userId: string) {

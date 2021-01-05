@@ -6,7 +6,6 @@ import { AuthService } from './auth.service';
 import { UsersModule } from './users/users.module';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
-import { CryptoService } from './crypto/crypto.service';
 import { CryptoModule } from './crypto/crypto.module';
 
 @Module({
@@ -25,7 +24,7 @@ import { CryptoModule } from './crypto/crypto.module';
     }),
     CryptoModule,
   ],
-  providers: [AuthService, JwtStrategy, LocalStrategy, CryptoService],
+  providers: [AuthService, JwtStrategy, LocalStrategy],
   exports: [AuthService],
 })
 export class AuthModule {}
