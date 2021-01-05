@@ -1,15 +1,18 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
-import { Camp, CampDocument } from 'src/common/mongo';
+import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
+import { Camp, CampDocument } from '../../common/mongo';
+import { UtilsService } from '../../common/utils';
 import { CreateCampDto } from './dto/create-camp.dto';
 import { UpdateCampDto } from './dto/update-camp.dto';
+import { CampData } from './interfaces';
 
 @Injectable()
 export class CampsService {
   constructor(
     @InjectModel(Camp.name) private readonly campModel: Model<CampDocument>,
+    private readonly utilService: UtilsService,
   ) {}
 
   async findAllCamps(paginationQuery: PaginationQueryDto) {
@@ -45,5 +48,14 @@ export class CampsService {
   async removeCamp(id: string) {
     const camp = await this.findOneCamp(id);
     return camp.remove();
+  }
+
+  // Frontend expects backend returns data with id instead of _id
+  private cleanCamp(camp: any): CampData | null {
+    if (!camp) return null;
+
+    const { _id, author = {}, ...rest } = camp;
+    const email = this.utilService.noPassByEmail(author.email);
+    return { id: _id, ...rest, author: { ...author, email } };
   }
 }

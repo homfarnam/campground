@@ -1,18 +1,11 @@
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
-import { Camp, CampSchema } from 'src/common/mongo';
+import { MongoModule } from '../../common/mongo';
+import { UtilsModule } from '../../common/utils';
 import { CampsController } from './camps.controller';
 import { CampsService } from './camps.service';
 
 @Module({
-  imports: [
-    MongooseModule.forFeature([
-      {
-        name: Camp.name,
-        schema: CampSchema,
-      },
-    ]),
-  ],
+  imports: [MongoModule, UtilsModule],
   controllers: [CampsController],
   providers: [CampsService],
 })
