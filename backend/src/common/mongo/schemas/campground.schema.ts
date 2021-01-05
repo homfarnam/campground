@@ -6,6 +6,21 @@ export type CampDocument = Camp & Document;
 
 @Schema({ timestamps: true, versionKey: false })
 export class Camp {
+  @Prop({ required: true })
+  title: string;
+
+  @Prop({ required: true })
+  price: number;
+
+  @Prop({ required: true })
+  desc: string;
+
+  @Prop()
+  imgUrl: string;
+
+  @Prop({ required: true })
+  location: string;
+
   @Prop({ type: Types.ObjectId, ref: User.name, required: true })
   author: string;
 
