@@ -1,6 +1,5 @@
 app:
   port: 8080
-  secret: password secret
 
 mongo:
   uri: mongodb://localhost:27017

@@ -1,7 +1,9 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
+import { HttpExceptionFilter } from './common';
+import { ResponseInterceptor } from './common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -12,13 +14,17 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
     }),
   );
+  app.useGlobalFilters(new HttpExceptionFilter());
+  app.useGlobalInterceptors(new ResponseInterceptor());
 
   const conf = app.get<ConfigService>(ConfigService);
   const port = conf.get('app.port');
 
   await app.listen(port, () => {
-    console.log(`\n
-      App start at port:${port}
+    Logger.log(`\n\n
+    ========================================
+            App start at port:${port}
+    ========================================
     \n`);
   });
 }

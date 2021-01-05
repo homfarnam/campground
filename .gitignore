@@ -20,7 +20,8 @@ lerna-debug.log*
 
 # Config
 *.env
-config.*.yml
+backend/config.*.yml
+
 
 
 # IDEs and editors
