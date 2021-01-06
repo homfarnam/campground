@@ -5,9 +5,9 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { UtilsService } from '../../common/utils';
 import { Camp, CampDocument, Review, ReviewDocument } from '../../common/mongo';
-import { CreateReviewDto } from './dto';
+import { UtilsService } from '../../common/utils';
+import { CreateReviewDto, UpdateReviewDto } from './dto';
 import { CampReview } from './interfaces';
 
 @Injectable()
@@ -62,10 +62,15 @@ export class ReviewsService {
       .then((docs) => docs.map((doc) => this.cleanReview(doc.toJSON())));
   }
 
-  async updateReview(author: string, reviewId: string): Promise<CampReview> {
+  async updateReview(
+    author: string,
+    reviewId: string,
+    update: UpdateReviewDto,
+  ): Promise<CampReview> {
     const review = await this.reviewModel
-      .updateOne({ author, _id: reviewId })
-      .populate('auhtor', { id: 1, email: 1, nickname: 1 });
+      .updateOne({ author, _id: reviewId }, update, { new: true })
+      .populate('auhtor', { id: 1, email: 1, nickname: 1 })
+      .then((doc) => (doc ? doc.toJSON() : null));
     if (review) return this.cleanReview(review);
     else throw new UnauthorizedException();
   }
@@ -75,6 +80,7 @@ export class ReviewsService {
   }
 
   private cleanReview(review: any): CampReview {
+    if (!review) return null;
     const { _id, author = {}, ...rest } = review;
     const noPassByEmail = this.utilService.noPassByEmail(author.email);
     return {

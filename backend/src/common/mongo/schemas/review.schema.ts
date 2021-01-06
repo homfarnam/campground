@@ -7,9 +7,8 @@ export type ReviewDocument = Review & Document;
 @Schema({ timestamps: true, versionKey: false })
 export class Review {
   @Prop({
-    required: true,
-    unique: true,
     index: true,
+    required: true,
   })
   camp: string;
 
