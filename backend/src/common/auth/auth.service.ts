@@ -46,8 +46,9 @@ export class AuthService {
 
   async refreshUser(token: string): Promise<string> {
     const user = await this.userService.findUser({ token });
-    if (user) return this.signUser(user).accessToken;
-    else throw new UnauthorizedException();
+    if (user && this.cryptoService.verifyRefreshToken(token)) {
+      return this.signUser(user).accessToken;
+    } else throw new UnauthorizedException();
   }
 
   private signUser(user: UserData) {
