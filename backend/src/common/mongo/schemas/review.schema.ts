@@ -1,15 +1,13 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
-import { User } from '../../auth/users/user.schema';
+import mongoose, { Document, Types } from 'mongoose';
+import { User } from './user.schema';
+import { Camp } from './campground.schema';
 
 export type ReviewDocument = Review & Document;
 
 @Schema({ timestamps: true, versionKey: false })
-export class Review {
-  @Prop({
-    index: true,
-    required: true,
-  })
+export class Review extends Document {
+  @Prop({ index: true, required: true, ref: Camp.name })
   camp: string;
 
   @Prop({ type: Types.ObjectId, ref: User.name, required: true })
