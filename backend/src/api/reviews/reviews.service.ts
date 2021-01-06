@@ -14,7 +14,6 @@ import { CampReview } from './interfaces';
 
 @Injectable()
 export class ReviewsService {
-  private authorSelects = ['email', 'nickname', 'id'];
   constructor(
     @InjectModel(Review.name) private reviewModel: Model<ReviewDocument>,
     @InjectModel(Camp.name) private campModel: Model<CampDocument>,
@@ -35,18 +34,13 @@ export class ReviewsService {
     }
 
     return new Promise((resolve, reject) => {
-      console.log(author);
       this.reviewModel.create(
         { ...createReviewDto, author },
         (err: unknown, doc: ReviewDocument) => {
           if (err) reject(err);
           else {
             doc.populate(
-              {
-                path: 'author',
-                model: User.name,
-                select: this.authorSelects.join(' '),
-              },
+              this.getAuthorPopulateData(),
               (err: unknown, review: ReviewDocument) => {
                 if (err) reject(err);
                 else resolve(this.cleanReview(review.toJSON()));
@@ -61,11 +55,7 @@ export class ReviewsService {
   getCampsReviews(campId: string): Promise<CampReview[]> {
     return this.reviewModel
       .find({ camp: campId })
-      .populate({
-        path: 'author',
-        model: 'User',
-        select: this.authorSelects.join(' '),
-      })
+      .populate(this.getAuthorPopulateData())
       .then((docs) => docs.map((doc) => this.cleanReview(doc.toJSON())));
   }
 
@@ -76,11 +66,7 @@ export class ReviewsService {
   ): Promise<CampReview> {
     const review = await this.reviewModel
       .findOneAndUpdate({ author, _id: reviewId }, update, { new: true })
-      .populate({
-        path: 'author',
-        model: 'User',
-        select: this.authorSelects.join(' '),
-      })
+      .populate(this.getAuthorPopulateData())
       .then((doc) => (doc ? doc.toJSON() : null));
     if (review) return this.cleanReview(review);
     else throw new BadRequestException(this.getBadRequestMsg(reviewId));
@@ -97,7 +83,7 @@ export class ReviewsService {
 
   private cleanReview(review: any): CampReview {
     if (!review) return null;
-    
+
     const { _id, author, ...reviewData } = review;
     author.id = author._id;
     delete author._id;
@@ -107,5 +93,13 @@ export class ReviewsService {
 
   private getBadRequestMsg(review: string) {
     return `Either current user is not the review owner or review#:${review} is not exist`;
+  }
+
+  private getAuthorPopulateData() {
+    return {
+      path: 'author',
+      model: User.name,
+      select: 'id email nickname',
+    };
   }
 }
