@@ -10,7 +10,7 @@ import {
 import { AuthService, JwtAuthGuard, LocalAuthGuard } from '../../common/auth';
 import { RegisterDto, User } from '../../common/auth/users';
 
-@Controller('users')
+@Controller('api/users')
 export class UsersController {
   constructor(private authService: AuthService) {}
 

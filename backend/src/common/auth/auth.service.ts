@@ -40,19 +40,14 @@ export class AuthService {
     const user = await this.userService.findUser({ userId });
     if (user) {
       await this.userService.updateUser(userId, { token: null });
-      return;
-    } else {
-      throw new UnauthorizedException();
-    }
+      return 'ok';
+    } else throw new UnauthorizedException();
   }
 
   async refreshUser(token: string): Promise<string> {
     const user = await this.userService.findUser({ token });
-    if (user) {
-      const { token, id, ...userData } = user;
-      const payload = { sub: id, ...userData };
-      const accessToken = this.jwtService.sign(payload);
-      return accessToken;
+    if (user && this.cryptoService.verifyRefreshToken(token)) {
+      return this.signUser(user).accessToken;
     } else throw new UnauthorizedException();
   }
 

@@ -16,10 +16,7 @@ import { CryptoModule } from './crypto/crypto.module';
       inject: [ConfigService],
       useFactory: async (config: ConfigService) => {
         const { secret, expiration } = config.get('auth.ACCESS_TOKEN');
-        return {
-          secret,
-          signOptions: { expiresIn: expiration },
-        };
+        return { secret, signOptions: { expiresIn: expiration } };
       },
     }),
     CryptoModule,

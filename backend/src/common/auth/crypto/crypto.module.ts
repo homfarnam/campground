@@ -9,10 +9,7 @@ import { CryptoService } from './crypto.service';
       inject: [ConfigService],
       useFactory: async (config: ConfigService) => {
         const { secret, expiration } = config.get('auth.REFRESH_TOKEN');
-        return {
-          secret,
-          signOptions: { expiresIn: expiration },
-        };
+        return { secret, signOptions: { expiresIn: expiration } };
       },
     }),
   ],

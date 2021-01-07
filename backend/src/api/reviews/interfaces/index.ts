@@ -13,6 +13,7 @@ export interface Review extends ReviewBase {
 interface Author {
   nickname: string;
   id: string;
+  email: string;
 }
 
 export interface CampReview extends ReviewBase {

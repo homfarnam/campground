@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../common/auth';
 import { User } from '../../common/auth/users';
-import { CreateReviewDto } from './dto';
+import { CreateReviewDto, UpdateReviewDto } from './dto';
 import { ReviewsService } from './reviews.service';
 
 @Controller('api/reviews')
@@ -37,8 +37,9 @@ export class ReviewsController {
   updateReview(
     @User('userId') author: string,
     @Param('reviewId') reviewId: string,
+    @Body() update: UpdateReviewDto,
   ) {
-    return this.reviewsService.updateReview(author, reviewId);
+    return this.reviewsService.updateReview(author, reviewId, update);
   }
 
   @UseGuards(JwtAuthGuard)
