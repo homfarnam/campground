@@ -1,12 +1,17 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { User } from 'src/common/auth/users';
 import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 import { Camp, CampDocument } from '../../common/mongo';
 import { UtilsService } from '../../common/utils';
 import { CreateCampDto } from './dto/create-camp.dto';
 import { UpdateCampDto } from './dto/update-camp.dto';
-import { CampData } from './interfaces';
+import { CampBase, CampData } from './interfaces';
 
 @Injectable()
 export class CampsService {
@@ -29,25 +34,69 @@ export class CampsService {
     return camp;
   }
 
-  createCamp(createCampDto: CreateCampDto) {
-    const camp = new this.campModel(createCampDto);
-    return camp.save();
+  async createCamp(
+    author: string,
+    createCampDto: CreateCampDto,
+  ): Promise<CampBase> {
+    const campId = createCampDto.title;
+    const campItem = await this.campModel
+      .findById(campId)
+      .then((doc) => (doc ? doc.toJSON() : null));
+
+    if (!campItem) {
+      throw new BadRequestException(`Camp:#${campId} doesn't exist.`);
+    }
+
+    return new Promise((resolve, reject) => {
+      this.campModel.create(
+        { ...CreateCampDto, author },
+        (err: unknown, doc: CampDocument) => {
+          if (err) reject(err);
+          else {
+            doc.populate(
+              this.getAuthorPopulateData(),
+              (err: unknown, camp: CampDocument) => {
+                if (err) reject(err);
+                else resolve(this.cleanCamp(camp.toJSON()));
+              },
+            );
+          }
+        },
+      );
+    });
   }
 
-  async updateCamp(id: string, updateCampDto: UpdateCampDto) {
+  async updateCamp(
+    id: string,
+    author: string,
+    updateCampDto: UpdateCampDto,
+  ): Promise<CampBase> {
     const existingCamp = await this.campModel
-      .findOneAndUpdate({ _id: id }, { $set: updateCampDto }, { new: true })
+      .findOneAndUpdate(
+        { author, _id: id },
+        { $set: updateCampDto },
+        { new: true },
+      )
       .exec();
-    if (!existingCamp) {
-      // update the existing entity
-      throw new NotFoundException(`Camp #${id} not found!`);
-    }
-    return existingCamp;
+    if (existingCamp) return this.cleanCamp(existingCamp);
+    else throw new BadRequestException(this.getBadRequestMsg(id));
   }
 
   async removeCamp(id: string) {
     const camp = await this.findOneCamp(id);
     return camp.remove();
+  }
+
+  private getBadRequestMsg(camp: string) {
+    return `Either current user is not the review owner or review#:${camp} is not exist`;
+  }
+
+  private getAuthorPopulateData() {
+    return {
+      path: 'author',
+      model: User.name,
+      select: 'id email nickname',
+    };
   }
 
   // Frontend expects backend returns data with id instead of _id

@@ -7,7 +7,10 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
+import { JwtAuthGuard } from 'src/common/auth';
+import { User } from 'src/common/auth/users';
 import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 import { CampsService } from './camps.service';
 import { CreateCampDto } from './dto/create-camp.dto';
@@ -27,15 +30,20 @@ export class CampsController {
     return this.campService.findOneCamp(id);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() createCampDto: CreateCampDto) {
-    console.log(createCampDto instanceof CreateCampDto);
-    return this.campService.createCamp(createCampDto);
+  create(@User('userId') author: string, @Body() createCampDto: CreateCampDto) {
+    return this.campService.createCamp(author, createCampDto);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCampDto: UpdateCampDto) {
-    return this.campService.updateCamp(id, updateCampDto);
+  update(
+    @User('userId') author: string,
+    @Param('id') id: string,
+    @Body() updateCampDto: UpdateCampDto,
+  ) {
+    return this.campService.updateCamp(author, id, updateCampDto);
   }
 
   @Delete(':id')
